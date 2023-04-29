@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+service ChainReplication {
+    rpc Ack(AckRequest) returns (AckResponse) {}
+    rpc Start(StartMessage) returns (StartResponse) {}
+}
+
+message AckRequest {}
+
+message AckResponse {
+    string name = 1;
+    int32 id = 2;
+}
+
+message StartMessage {}
+
+message StartResponse {
+    bool ready = 1;
+}
