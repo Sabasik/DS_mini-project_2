@@ -203,7 +203,6 @@ def serve():
             user_command = input('{}>'.format(name))
             servicer.process_command(user_command)
     except KeyboardInterrupt:
-        servicer.send_quit_game()
         server.stop(0)
 
 
