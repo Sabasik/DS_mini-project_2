@@ -4,8 +4,19 @@ import chain_replication_pb2
 import chain_replication_pb2_grpc
 import time
 import random
+import re
 from concurrent import futures
 
+pattern_local_store_ps = re.compile("Local-store-ps (\d+)")
+pattern_create_chain = re.compile("Create-chain")
+pattern_list_chain = re.compile("List-chain")
+pattern_write_operation = re.compile('Write-operation <"(.*?)", (\d+(\.\d*)?)>')
+pattern_list_books = re.compile("List-books")
+pattern_read_operation = re.compile('Read-operation "(.*?)"')
+pattern_time_out = re.compile("Time-out")
+pattern_data_status = re.compile("Data-status")
+pattern_remove_head = re.compile("Remove-head")
+pattern_restore_head = re.compile("Restore-head")
 
 def print_help():
     print("""
@@ -169,7 +180,87 @@ class ChainReplicationServicer(chain_replication_pb2_grpc.ChainReplicationServic
             time.sleep(1)
 
 
+    def local_store_ps(self, k):
+        print("Command: local_store_ps;", "input:", k)
+
+
+    def create_chain(self):
+        print("Command: create_chain")
+
+
+    def list_chain(self):
+        print("Command: list_chain")
+
+
+    def write_operation(self, book, price):
+        print("Command: write_operation;", "input:", book, price)
+
+
+    def list_books(self):
+        print("Command: list_books")
+
+
+    def read_operation(self, book):
+        print("Command: read_operation;", "input:", book)
+
+
+    def time_out(self):
+        print("Command: time_out")
+
+
+    def data_status(self):
+        print("Command: data_status")
+
+
+    def remove_head(self):
+        print("Command: remove_head")
+
+
+    def restore_head(self):
+        print("Command: restore_head")
+
+
     def process_command(self, command):
+        m = pattern_local_store_ps.match(command)
+        if m:
+            self.local_store_ps(int(m.group(1)))
+            return
+        m = pattern_create_chain.match(command)
+        if m:
+            self.create_chain()
+            return
+        m = pattern_list_chain.match(command)
+        if m:
+            self.list_chain()
+            return
+        m = pattern_write_operation.match(command)
+        if m:
+            self.write_operation(m.group(1), float(m.group(2)))
+            return
+        m = pattern_list_books.match(command)
+        if m:
+            self.list_books()
+            return
+        m = pattern_read_operation.match(command)
+        if m:
+            self.read_operation(m.group(1))
+            return
+        m = pattern_time_out.match(command)
+        if m:
+            self.time_out()
+            return
+        m = pattern_data_status.match(command)
+        if m:
+            self.data_status()
+            return
+        m = pattern_remove_head.match(command)
+        if m:
+            self.remove_head()
+            return
+        m = pattern_restore_head.match(command)
+        if m:
+            self.restore_head()
+            return
         print("Unknown command!")
 
 def serve():
