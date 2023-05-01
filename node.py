@@ -5,6 +5,7 @@ import chain_pb2_grpc
 import time
 import random
 from concurrent import futures
+from threading import Thread
 
 parser = argparse.ArgumentParser(description='Node setup arguments')
 required = parser.add_argument_group('required arguments')
@@ -64,6 +65,16 @@ class Node:
         except:
             print(f'Failed to send chain to node {self.name}({self.address})')
             return None
+        
+    def send_book_data(self, target_process, book, price):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.SendBook(chain_pb2.SendBookRequest(process=target_process, book=book, price=price))
+                return True
+        except:
+            print(f'Failed to send book data to node {self.name}({self.address})')
+            return None
 
     def __repr__(self) -> str:
         return f'Node: {self.name}, address: {self.address}, online: {self.online}'
@@ -90,6 +101,15 @@ class Process:
     def set_tail(self, tail):
         self.tail = tail
 
+    def store_book(self, book, price):
+        # TODO: remove
+        book_data = {}
+        book_data['price'] = price
+        book_data['dirty'] = None # Placeholder for a future task
+        self.store[book] = book_data
+        print(f'{self.name} received book data')
+        print(self.store)
+
     def reset(self):
         self.predecessor = None
         self.successor = None
@@ -112,6 +132,16 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
     def set_nodes(self, nodes):
         self.nodes = nodes
+
+    def get_process_node(self, process_name):
+        target_node_name = process_name.split('-PS')[0]
+        target_node = None
+        for node in self.nodes:
+            if node.name == target_node_name:
+                target_node = node
+                break
+        
+        return target_node
 
     def process_order(self):
         '''
@@ -199,6 +229,22 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             else:
                 print(f'{process}', end=' -> ')
 
+    def write_operation(self, operation):
+        '''
+        Parses the input and sends it to the head process
+        '''
+        operation = operation[1:len(operation) - 1]
+        book, price = operation.split(',')
+        book = book[1:len(book) - 1]
+        price = price.strip()
+
+        target_node = self.get_process_node(self.chain_order[0])
+        print('Target node')
+        print(target_node)
+
+        thread = Thread(target=target_node.send_book_data, args=(self.chain_order[0], book, price,))
+        thread.start()
+
     def process_command(self, command: str):
         if command.startswith('Local-store-ps'):
             k = int(command.split(' ')[1])
@@ -207,6 +253,9 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             self.create_chain()
         elif command == 'List-chain':
             self.list_chain()
+        elif command.startswith('Write-operation'):
+            command = command.replace('Write-operation', '').strip()
+            self.write_operation(command)
         elif command == 'exit':
             self.stop_server()
         else:
@@ -239,6 +288,25 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             self.processes[key].reset()
         self.update_processes()
         return chain_pb2.ChainResponse()
+    
+    def SendBook(self, request, context):
+        target_process = None
+        for key in list(self.processes.keys()):
+            process = self.processes[key]
+            if process.name == request.process:
+                target_process = process
+                break
+
+        book = request.book
+        price = request.price
+        target_process.store_book(book, price)
+        # If the chain continues send the book to the next member
+        if process.successor is not None:
+            target_node = self.get_process_node(process.successor)
+            thread = Thread(target=target_node.send_book_data, args=(process.successor, book, price,))
+            thread.start()
+
+        return chain_pb2.SendBookResponse()
 
 # Reads the node file and returns an array of Node objects
 def read_node_file(path):

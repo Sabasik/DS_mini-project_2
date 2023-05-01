@@ -4,6 +4,7 @@ service Chain {
     rpc Probe(ProbeRequest) returns (ProbeResponse) {}
     rpc Processes(ProcessRequest) returns (ProcessResponse) {}
     rpc SetChain(ChainRequest) returns (ChainResponse) {}
+    rpc SendBook(SendBookRequest) returns (SendBookResponse) {}
 }
 
 message ProbeRequest {}
@@ -19,4 +20,11 @@ message ProcessResponse {
 message ChainResponse {}
 message ChainRequest {
     repeated string processes = 1;
+}
+
+message SendBookResponse {}
+message SendBookRequest {
+    string process = 1;
+    string book = 2;
+    string price = 3;
 }

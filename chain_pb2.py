@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63hain.proto\"\x0e\n\x0cProbeRequest\"\x1d\n\rProbeResponse\x12\x0c\n\x04name\x18\x01 \x01(\t\"\x10\n\x0eProcessRequest\"$\n\x0fProcessResponse\x12\x11\n\tprocesses\x18\x01 \x03(\t\"\x0f\n\rChainResponse\"!\n\x0c\x43hainRequest\x12\x11\n\tprocesses\x18\x01 \x03(\t2\x90\x01\n\x05\x43hain\x12(\n\x05Probe\x12\r.ProbeRequest\x1a\x0e.ProbeResponse\"\x00\x12\x30\n\tProcesses\x12\x0f.ProcessRequest\x1a\x10.ProcessResponse\"\x00\x12+\n\x08SetChain\x12\r.ChainRequest\x1a\x0e.ChainResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63hain.proto\"\x0e\n\x0cProbeRequest\"\x1d\n\rProbeResponse\x12\x0c\n\x04name\x18\x01 \x01(\t\"\x10\n\x0eProcessRequest\"$\n\x0fProcessResponse\x12\x11\n\tprocesses\x18\x01 \x03(\t\"\x0f\n\rChainResponse\"!\n\x0c\x43hainRequest\x12\x11\n\tprocesses\x18\x01 \x03(\t\"\x12\n\x10SendBookResponse\"?\n\x0fSendBookRequest\x12\x0f\n\x07process\x18\x01 \x01(\t\x12\x0c\n\x04\x62ook\x18\x02 \x01(\t\x12\r\n\x05price\x18\x03 \x01(\t2\xc3\x01\n\x05\x43hain\x12(\n\x05Probe\x12\r.ProbeRequest\x1a\x0e.ProbeResponse\"\x00\x12\x30\n\tProcesses\x12\x0f.ProcessRequest\x1a\x10.ProcessResponse\"\x00\x12+\n\x08SetChain\x12\r.ChainRequest\x1a\x0e.ChainResponse\"\x00\x12\x31\n\x08SendBook\x12\x10.SendBookRequest\x1a\x11.SendBookResponse\"\x00\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chain_pb2', globals())
@@ -32,6 +32,10 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _CHAINRESPONSE._serialized_end=133
   _CHAINREQUEST._serialized_start=135
   _CHAINREQUEST._serialized_end=168
-  _CHAIN._serialized_start=171
-  _CHAIN._serialized_end=315
+  _SENDBOOKRESPONSE._serialized_start=170
+  _SENDBOOKRESPONSE._serialized_end=188
+  _SENDBOOKREQUEST._serialized_start=190
+  _SENDBOOKREQUEST._serialized_end=253
+  _CHAIN._serialized_start=256
+  _CHAIN._serialized_end=451
 # @@protoc_insertion_point(module_scope)
