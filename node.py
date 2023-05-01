@@ -75,6 +75,18 @@ class Node:
         except:
             print(f'Failed to send book data to node {self.name}({self.address})')
             return None
+        
+    def get_book_list(self, target_process):
+        #try:
+        with grpc.insecure_channel(self.address) as channel:
+            stub = chain_pb2_grpc.ChainStub(channel)
+            response = stub.ListBooks(chain_pb2.ListBooksRequest(process=target_process))
+            for i, book in enumerate(response.books):
+                print(f'{i}) {book}')
+            return True
+        #except:
+        #    print(f'Failed to get book list from node {self.name}({self.address})')
+        #    return None
 
     def __repr__(self) -> str:
         return f'Node: {self.name}, address: {self.address}, online: {self.online}'
@@ -106,6 +118,13 @@ class Process:
         book_data['price'] = price
         book_data['dirty'] = None # Placeholder for a future task
         self.store[book] = book_data
+
+    def get_books(self):
+        listing = []
+        for key in list(self.store.keys()):
+            listing.append(f'{key} = {self.store[key]["price"]}')
+
+        return listing
 
     def reset(self):
         self.predecessor = None
@@ -240,6 +259,15 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         thread = Thread(target=target_node.send_book_data, args=(self.chain_order[0], book, price,))
         thread.start()
 
+    def list_books(self):
+        '''
+        Asks the list of books from the Tail process
+        '''
+        tail_process = self.chain_order[len(self.chain_order) - 1]
+        tail_node = self.get_process_node(tail_process)
+
+        tail_node.get_book_list(tail_process)
+
     def process_command(self, command: str):
         if command.startswith('Local-store-ps'):
             k = int(command.split(' ')[1])
@@ -251,6 +279,8 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         elif command.startswith('Write-operation'):
             command = command.replace('Write-operation', '').strip()
             self.write_operation(command)
+        elif command == 'List-books':
+            self.list_books()
         elif command == 'exit':
             self.stop_server()
         else:
@@ -302,6 +332,17 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             thread.start()
 
         return chain_pb2.SendBookResponse()
+    
+    def ListBooks(self, request, context):
+        target_process = None
+        for key in list(self.processes.keys()):
+            process = self.processes[key]
+            if process.name == request.process:
+                target_process = process
+                break
+
+        books = target_process.get_books()
+        return chain_pb2.ListBooksResponse(books=books)
 
 # Reads the node file and returns an array of Node objects
 def read_node_file(path):
