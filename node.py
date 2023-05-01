@@ -102,13 +102,10 @@ class Process:
         self.tail = tail
 
     def store_book(self, book, price):
-        # TODO: remove
         book_data = {}
         book_data['price'] = price
         book_data['dirty'] = None # Placeholder for a future task
         self.store[book] = book_data
-        print(f'{self.name} received book data')
-        print(self.store)
 
     def reset(self):
         self.predecessor = None
@@ -239,8 +236,6 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         price = price.strip()
 
         target_node = self.get_process_node(self.chain_order[0])
-        print('Target node')
-        print(target_node)
 
         thread = Thread(target=target_node.send_book_data, args=(self.chain_order[0], book, price,))
         thread.start()
