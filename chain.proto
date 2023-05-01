@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+service Chain {
+    rpc Probe(ProbeRequest) returns (ProbeResponse) {}
+    rpc Processes(ProcessRequest) returns (ProcessResponse) {}
+    rpc SetChain(ChainRequest) returns (ChainResponse) {}
+    rpc SendBook(SendBookRequest) returns (SendBookResponse) {}
+    rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {}
+    rpc GetBookPrice(BookRequest) returns (BookResponse) {}
+}
+
+message ProbeRequest {}
+message ProbeResponse {
+    string name = 1;
+}
+
+message ProcessRequest {}
+message ProcessResponse {
+    repeated string processes = 1;
+}
+
+message ChainResponse {}
+message ChainRequest {
+    repeated string processes = 1;
+}
+
+message SendBookResponse {}
+message SendBookRequest {
+    string process = 1;
+    string book = 2;
+    string price = 3;
+}
+
+message ListBooksRequest {
+    string process = 1;
+}
+message ListBooksResponse {
+    repeated string books = 1;
+}
+
+message BookRequest {
+    string process = 1;
+    string book = 2;
+}
+message BookResponse {
+    string price = 1;
+}
