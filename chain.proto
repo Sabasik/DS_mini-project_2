@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+service Chain {
+    rpc Probe(ProbeRequest) returns (ProbeResponse) {}
+}
+
+message ProbeRequest {}
+message ProbeResponse {
+    string name = 1;
+}
