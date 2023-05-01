@@ -19,12 +19,34 @@ class ChainStub(object):
                 request_serializer=chain__pb2.ProbeRequest.SerializeToString,
                 response_deserializer=chain__pb2.ProbeResponse.FromString,
                 )
+        self.Processes = channel.unary_unary(
+                '/Chain/Processes',
+                request_serializer=chain__pb2.ProcessRequest.SerializeToString,
+                response_deserializer=chain__pb2.ProcessResponse.FromString,
+                )
+        self.SetChain = channel.unary_unary(
+                '/Chain/SetChain',
+                request_serializer=chain__pb2.ChainRequest.SerializeToString,
+                response_deserializer=chain__pb2.ChainResponse.FromString,
+                )
 
 
 class ChainServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Probe(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Processes(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SetChain(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -37,6 +59,16 @@ def add_ChainServicer_to_server(servicer, server):
                     servicer.Probe,
                     request_deserializer=chain__pb2.ProbeRequest.FromString,
                     response_serializer=chain__pb2.ProbeResponse.SerializeToString,
+            ),
+            'Processes': grpc.unary_unary_rpc_method_handler(
+                    servicer.Processes,
+                    request_deserializer=chain__pb2.ProcessRequest.FromString,
+                    response_serializer=chain__pb2.ProcessResponse.SerializeToString,
+            ),
+            'SetChain': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetChain,
+                    request_deserializer=chain__pb2.ChainRequest.FromString,
+                    response_serializer=chain__pb2.ChainResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -62,5 +94,39 @@ class Chain(object):
         return grpc.experimental.unary_unary(request, target, '/Chain/Probe',
             chain__pb2.ProbeRequest.SerializeToString,
             chain__pb2.ProbeResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Processes(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/Processes',
+            chain__pb2.ProcessRequest.SerializeToString,
+            chain__pb2.ProcessResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SetChain(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/SetChain',
+            chain__pb2.ChainRequest.SerializeToString,
+            chain__pb2.ChainResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

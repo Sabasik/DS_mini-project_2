@@ -2,9 +2,21 @@ syntax = "proto3";
 
 service Chain {
     rpc Probe(ProbeRequest) returns (ProbeResponse) {}
+    rpc Processes(ProcessRequest) returns (ProcessResponse) {}
+    rpc SetChain(ChainRequest) returns (ChainResponse) {}
 }
 
 message ProbeRequest {}
 message ProbeResponse {
     string name = 1;
+}
+
+message ProcessRequest {}
+message ProcessResponse {
+    repeated string processes = 1;
+}
+
+message ChainResponse {}
+message ChainRequest {
+    repeated string processes = 1;
 }
