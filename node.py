@@ -77,16 +77,26 @@ class Node:
             return None
         
     def get_book_list(self, target_process):
-        #try:
-        with grpc.insecure_channel(self.address) as channel:
-            stub = chain_pb2_grpc.ChainStub(channel)
-            response = stub.ListBooks(chain_pb2.ListBooksRequest(process=target_process))
-            for i, book in enumerate(response.books):
-                print(f'{i}) {book}')
-            return True
-        #except:
-        #    print(f'Failed to get book list from node {self.name}({self.address})')
-        #    return None
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.ListBooks(chain_pb2.ListBooksRequest(process=target_process))
+                for i, book in enumerate(response.books):
+                    print(f'{i}) {book}')
+                return True
+        except:
+            print(f'Failed to get book list from node {self.name}({self.address})')
+            return None
+        
+    def get_book_price(self, process, book):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.GetBookPrice(chain_pb2.BookRequest(process=process, book=book))
+                return response.price
+        except:
+            print(f'Failed to get book price from node {self.name}({self.address})')
+            return None
 
     def __repr__(self) -> str:
         return f'Node: {self.name}, address: {self.address}, online: {self.online}'
@@ -125,6 +135,13 @@ class Process:
             listing.append(f'{key} = {self.store[key]["price"]}')
 
         return listing
+    
+    def get_book_price(self, book):
+        try:
+            book = self.store[book]
+            return book['price']
+        except:
+            return None
 
     def reset(self):
         self.predecessor = None
@@ -268,6 +285,19 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
         tail_node.get_book_list(tail_process)
 
+    def read_operation(self, book):
+        '''
+        Tries to read a book from a random process
+        '''
+        process = self.chain_order[random.randint(0, len(self.chain_order) - 1)]
+        node = self.get_process_node(process)
+
+        price = node.get_book_price(process, book)
+        if price == 'None':
+            print('Not yet in the stock')
+        else:
+            print(f'{price} EUR')
+
     def process_command(self, command: str):
         if command.startswith('Local-store-ps'):
             k = int(command.split(' ')[1])
@@ -281,6 +311,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             self.write_operation(command)
         elif command == 'List-books':
             self.list_books()
+        elif command.startswith('Read-operation'):
+            book = command.replace('Read-operation', '').strip()
+            book = book[1:len(book) - 1] # Also removing quotes
+            self.read_operation(book)
         elif command == 'exit':
             self.stop_server()
         else:
@@ -314,35 +348,52 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         self.update_processes()
         return chain_pb2.ChainResponse()
     
-    def SendBook(self, request, context):
+    def get_target_process(self, target_name):
         target_process = None
         for key in list(self.processes.keys()):
             process = self.processes[key]
-            if process.name == request.process:
+            if process.name == target_name:
                 target_process = process
                 break
+
+        return target_process
+    
+    def SendBook(self, request, context):
+        target_process = self.get_target_process(request.process)
 
         book = request.book
         price = request.price
         target_process.store_book(book, price)
         # If the chain continues send the book to the next member
-        if process.successor is not None:
-            target_node = self.get_process_node(process.successor)
-            thread = Thread(target=target_node.send_book_data, args=(process.successor, book, price,))
+        if target_process.successor is not None:
+            target_node = self.get_process_node(target_process.successor)
+            thread = Thread(target=target_node.send_book_data, args=(target_process.successor, book, price,))
             thread.start()
 
         return chain_pb2.SendBookResponse()
     
     def ListBooks(self, request, context):
-        target_process = None
-        for key in list(self.processes.keys()):
-            process = self.processes[key]
-            if process.name == request.process:
-                target_process = process
-                break
-
+        target_process = self.get_target_process(request.process)
         books = target_process.get_books()
         return chain_pb2.ListBooksResponse(books=books)
+    
+    def GetBookPrice(self, request, context):
+        # Get the book from the required process
+        target_process = self.get_target_process(request.process)
+        price = target_process.get_book_price(request.book)
+        if price is None:
+            price = 'None'
+        # Consult with the head node
+        if request.process != self.chain_order[0]:
+            head_node = self.get_process_node(self.chain_order[0])
+            head_price = head_node.get_book_price(self.chain_order[0], request.book)
+        else:
+            head_price = price
+        # TODO: show that the price has actually changed
+        price = head_price
+        return chain_pb2.BookResponse(price=price)
+        
+
 
 # Reads the node file and returns an array of Node objects
 def read_node_file(path):
