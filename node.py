@@ -81,16 +81,34 @@ class Node:
             print(f'Failed to send book data to node {self.name}({self.address})')
             return None
 
+    def clean_book(self, target_process, book):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.CleanBook(chain_pb2.CleanBookRequest(process=target_process, book=book))
+                return True
+        except:
+            print(f'Failed to clean book in node {self.name}({self.address})')
+            return None
+
     def get_book_list(self, target_process):
         try:
             with grpc.insecure_channel(self.address) as channel:
                 stub = chain_pb2_grpc.ChainStub(channel)
                 response = stub.ListBooks(chain_pb2.ListBooksRequest(process=target_process))
-                for i, book in enumerate(response.books):
-                    print(f'{i}) {book}')
-                return True
+                return response.books
         except:
             print(f'Failed to get book list from node {self.name}({self.address})')
+            return None
+
+    def get_book_statuses(self, target_process):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.StatusBooks(chain_pb2.StatusBooksRequest(process=target_process))
+                return response.books
+        except:
+            print(f'Failed to get book statuses from node {self.name}({self.address})')
             return None
 
     def get_book_price(self, process, book):
@@ -142,8 +160,11 @@ class Process:
     def store_book(self, book, price):
         book_data = {}
         book_data['price'] = price
-        book_data['dirty'] = None  # Placeholder for a future task
+        book_data['dirty'] = True
         self.store[book] = book_data
+
+    def clean_book(self, book):
+        self.store[book]['dirty'] = False
 
     def get_books(self):
         listing = []
@@ -151,6 +172,19 @@ class Process:
             listing.append(f'{key} = {self.store[key]["price"]}')
 
         return listing
+
+    def get_books_status(self):
+        statuses = []
+        for key in list(self.store.keys()):
+            dirty = self.store[key]['dirty']
+            if dirty:
+                status = 'dirty'
+            else:
+                status = 'clean'
+
+            statuses.append(f'{key} - {status}')
+
+        return statuses
 
     def get_book_price(self, book):
         try:
@@ -303,7 +337,12 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         tail_process = self.chain_order[len(self.chain_order) - 1]
         tail_node = self.get_process_node(tail_process)
 
-        tail_node.get_book_list(tail_process)
+        books = tail_node.get_book_list(tail_process)
+        if books is None:
+            books = []
+
+        for i, book in enumerate(books):
+            print(f'{i}) {book}')
 
     def read_operation(self, book):
         '''
@@ -337,6 +376,20 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
             node.set_timeout(timeout)
 
+    def data_status(self):
+        '''
+        Asks the head and tail of the chain for data and checks if the values match
+        '''
+        head_process = self.chain_order[0]
+        head_node = self.get_process_node(head_process)
+
+        statuses = head_node.get_book_statuses(head_process)
+        if statuses is None:
+            statuses = []
+
+        for i, status in enumerate(statuses):
+            print(f'{i}) {status}')
+
 
     def process_command(self, command: str):
         if command.startswith('Local-store-ps'):
@@ -358,6 +411,8 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         elif command.startswith('Set-timeout'):
             timeout = command.split(' ')[1].strip()
             self.process_timeout(timeout)
+        elif command == 'Data-status':
+            self.data_status()
         elif command == 'exit':
             self.stop_server()
         else:
@@ -413,8 +468,26 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             target_node = self.get_process_node(target_process.successor)
             thread = Thread(target=target_node.send_book_data, args=(target_process.successor, book, price, self.timeout))
             thread.start()
+        else:
+            target_process.clean_book(book)
+            pred_node = self.get_process_node(target_process.predecessor)
+            thread = Thread(target=pred_node.clean_book, args=(target_process.predecessor, book))
+            thread.start()
 
         return chain_pb2.SendBookResponse()
+
+    def CleanBook(self, request, context):
+        target_process = self.get_target_process(request.process)
+        target_process.clean_book(request.book)
+        predecessor = target_process.predecessor
+        if predecessor is None:
+            return chain_pb2.CleanBookResponse()
+
+        pred_node = self.get_process_node(predecessor)
+        thread = Thread(target=pred_node.clean_book, args=(predecessor, request.book))
+        thread.start()
+
+        return chain_pb2.CleanBookResponse()
 
     def ListBooks(self, request, context):
         target_process = self.get_target_process(request.process)
@@ -442,6 +515,11 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         else:
             self.set_timeout(timeout)
         return chain_pb2.TimeoutResponse()
+
+    def StatusBooks(self, request, context):
+        target_process = self.get_target_process(request.process)
+        books = target_process.get_books_status()
+        return chain_pb2.StatusBooksResponse(books=books)
 
 
 # Reads the node file and returns an array of Node objects

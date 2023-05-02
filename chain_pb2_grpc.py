@@ -34,6 +34,11 @@ class ChainStub(object):
                 request_serializer=chain__pb2.SendBookRequest.SerializeToString,
                 response_deserializer=chain__pb2.SendBookResponse.FromString,
                 )
+        self.CleanBook = channel.unary_unary(
+                '/Chain/CleanBook',
+                request_serializer=chain__pb2.CleanBookRequest.SerializeToString,
+                response_deserializer=chain__pb2.CleanBookResponse.FromString,
+                )
         self.ListBooks = channel.unary_unary(
                 '/Chain/ListBooks',
                 request_serializer=chain__pb2.ListBooksRequest.SerializeToString,
@@ -48,6 +53,11 @@ class ChainStub(object):
                 '/Chain/Timeout',
                 request_serializer=chain__pb2.TimeoutRequest.SerializeToString,
                 response_deserializer=chain__pb2.TimeoutResponse.FromString,
+                )
+        self.StatusBooks = channel.unary_unary(
+                '/Chain/StatusBooks',
+                request_serializer=chain__pb2.StatusBooksRequest.SerializeToString,
+                response_deserializer=chain__pb2.StatusBooksResponse.FromString,
                 )
 
 
@@ -78,6 +88,12 @@ class ChainServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CleanBook(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def ListBooks(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -91,6 +107,12 @@ class ChainServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Timeout(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StatusBooks(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -119,6 +141,11 @@ def add_ChainServicer_to_server(servicer, server):
                     request_deserializer=chain__pb2.SendBookRequest.FromString,
                     response_serializer=chain__pb2.SendBookResponse.SerializeToString,
             ),
+            'CleanBook': grpc.unary_unary_rpc_method_handler(
+                    servicer.CleanBook,
+                    request_deserializer=chain__pb2.CleanBookRequest.FromString,
+                    response_serializer=chain__pb2.CleanBookResponse.SerializeToString,
+            ),
             'ListBooks': grpc.unary_unary_rpc_method_handler(
                     servicer.ListBooks,
                     request_deserializer=chain__pb2.ListBooksRequest.FromString,
@@ -133,6 +160,11 @@ def add_ChainServicer_to_server(servicer, server):
                     servicer.Timeout,
                     request_deserializer=chain__pb2.TimeoutRequest.FromString,
                     response_serializer=chain__pb2.TimeoutResponse.SerializeToString,
+            ),
+            'StatusBooks': grpc.unary_unary_rpc_method_handler(
+                    servicer.StatusBooks,
+                    request_deserializer=chain__pb2.StatusBooksRequest.FromString,
+                    response_serializer=chain__pb2.StatusBooksResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -213,6 +245,23 @@ class Chain(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
+    def CleanBook(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/CleanBook',
+            chain__pb2.CleanBookRequest.SerializeToString,
+            chain__pb2.CleanBookResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
     def ListBooks(request,
             target,
             options=(),
@@ -260,5 +309,22 @@ class Chain(object):
         return grpc.experimental.unary_unary(request, target, '/Chain/Timeout',
             chain__pb2.TimeoutRequest.SerializeToString,
             chain__pb2.TimeoutResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StatusBooks(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/StatusBooks',
+            chain__pb2.StatusBooksRequest.SerializeToString,
+            chain__pb2.StatusBooksResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

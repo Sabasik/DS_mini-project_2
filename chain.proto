@@ -5,9 +5,11 @@ service Chain {
     rpc Processes(ProcessRequest) returns (ProcessResponse) {}
     rpc SetChain(ChainRequest) returns (ChainResponse) {}
     rpc SendBook(SendBookRequest) returns (SendBookResponse) {}
+    rpc CleanBook(CleanBookRequest) returns (CleanBookResponse) {}
     rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {}
     rpc GetBookPrice(BookRequest) returns (BookResponse) {}
     rpc Timeout(TimeoutRequest) returns (TimeoutResponse) {}
+    rpc StatusBooks(StatusBooksRequest) returns (StatusBooksResponse) {}
 }
 
 message ProbeRequest {}
@@ -32,6 +34,12 @@ message SendBookRequest {
     string price = 3;
 }
 
+message CleanBookResponse {}
+message CleanBookRequest {
+    string process = 1;
+    string book = 2;
+}
+
 message ListBooksRequest {
     string process = 1;
 }
@@ -51,4 +59,11 @@ message BookResponse {
 message TimeoutResponse {}
 message TimeoutRequest {
     string timeout = 1;
+}
+
+message StatusBooksRequest {
+    string process = 1;
+}
+message StatusBooksResponse {
+    repeated string books = 1;
 }
