@@ -44,6 +44,11 @@ class ChainStub(object):
                 request_serializer=chain__pb2.BookRequest.SerializeToString,
                 response_deserializer=chain__pb2.BookResponse.FromString,
                 )
+        self.Timeout = channel.unary_unary(
+                '/Chain/Timeout',
+                request_serializer=chain__pb2.TimeoutRequest.SerializeToString,
+                response_deserializer=chain__pb2.TimeoutResponse.FromString,
+                )
 
 
 class ChainServicer(object):
@@ -85,6 +90,12 @@ class ChainServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Timeout(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ChainServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -117,6 +128,11 @@ def add_ChainServicer_to_server(servicer, server):
                     servicer.GetBookPrice,
                     request_deserializer=chain__pb2.BookRequest.FromString,
                     response_serializer=chain__pb2.BookResponse.SerializeToString,
+            ),
+            'Timeout': grpc.unary_unary_rpc_method_handler(
+                    servicer.Timeout,
+                    request_deserializer=chain__pb2.TimeoutRequest.FromString,
+                    response_serializer=chain__pb2.TimeoutResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -227,5 +243,22 @@ class Chain(object):
         return grpc.experimental.unary_unary(request, target, '/Chain/GetBookPrice',
             chain__pb2.BookRequest.SerializeToString,
             chain__pb2.BookResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Timeout(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/Timeout',
+            chain__pb2.TimeoutRequest.SerializeToString,
+            chain__pb2.TimeoutResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

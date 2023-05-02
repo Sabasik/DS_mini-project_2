@@ -7,6 +7,7 @@ service Chain {
     rpc SendBook(SendBookRequest) returns (SendBookResponse) {}
     rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {}
     rpc GetBookPrice(BookRequest) returns (BookResponse) {}
+    rpc Timeout(TimeoutRequest) returns (TimeoutResponse) {}
 }
 
 message ProbeRequest {}
@@ -45,4 +46,9 @@ message BookRequest {
 message BookResponse {
     string price = 1;
     string old_price = 2;
+}
+
+message TimeoutResponse {}
+message TimeoutRequest {
+    string timeout = 1;
 }

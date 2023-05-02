@@ -4,6 +4,7 @@ import chain_pb2
 import chain_pb2_grpc
 import time
 import random
+import math
 from concurrent import futures
 from threading import Thread
 
@@ -67,7 +68,10 @@ class Node:
             print(f'Failed to send chain to node {self.name}({self.address})')
             return None
 
-    def send_book_data(self, target_process, book, price):
+    def send_book_data(self, target_process, book, price, timeout = None):
+        if timeout:
+            time.sleep(math.ceil(timeout * 60)) # Convert minutes to seconds
+
         try:
             with grpc.insecure_channel(self.address) as channel:
                 stub = chain_pb2_grpc.ChainStub(channel)
@@ -98,6 +102,17 @@ class Node:
         except:
             print(f'Failed to get book price from node {self.name}({self.address})')
             return None
+
+    def set_timeout(self, timeout):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.Timeout(chain_pb2.TimeoutRequest(timeout=timeout))
+                return True
+        except:
+            print(f'Failed to set timeout for node {self.name}({self.address})')
+            return None
+
 
     def __repr__(self) -> str:
         return f'Node: {self.name}, address: {self.address}, online: {self.online}'
@@ -160,12 +175,16 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         self.nodes = []
         self.chain_order = []
         self.processes = {}
+        self.timeout = None
 
     def set_server(self, server):
         self.server = server
 
     def set_nodes(self, nodes):
         self.nodes = nodes
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
 
     def get_process_node(self, process_name):
         target_node_name = process_name.split('-PS')[0]
@@ -296,10 +315,28 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         price, old_price = node.get_book_price(process, book)
         if price == 'None':
             print('Not yet in the stock')
-        elif price != old_price and old_price is not None:
+        elif price != old_price and old_price != 'None':
             print(f'{price} EUR (old price {old_price} EUR)')
         else:
             print(f'{price} EUR')
+
+    def process_timeout(self, timeout):
+        '''
+        Sets the timeout for all nodes before propagating the update to next nodes.
+        Time is expected as minutes.
+        '''
+        timeout_fl = float(timeout)
+        if timeout_fl == 0:
+            self.set_timeout(None)
+        else:
+            self.set_timeout(timeout_fl)
+
+        for node in self.nodes:
+            if node.name == self.name:
+                continue
+
+            node.set_timeout(timeout)
+
 
     def process_command(self, command: str):
         if command.startswith('Local-store-ps'):
@@ -318,6 +355,9 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             book = command.replace('Read-operation', '').strip()
             book = book[1:len(book) - 1]  # Also removing quotes
             self.read_operation(book)
+        elif command.startswith('Set-timeout'):
+            timeout = command.split(' ')[1].strip()
+            self.process_timeout(timeout)
         elif command == 'exit':
             self.stop_server()
         else:
@@ -368,9 +408,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         price = request.price
         target_process.store_book(book, price)
         # If the chain continues, send the book to the next member
+        # Also includes timeout if this is necessary
         if target_process.successor is not None:
             target_node = self.get_process_node(target_process.successor)
-            thread = Thread(target=target_node.send_book_data, args=(target_process.successor, book, price,))
+            thread = Thread(target=target_node.send_book_data, args=(target_process.successor, book, price, self.timeout))
             thread.start()
 
         return chain_pb2.SendBookResponse()
@@ -393,6 +434,14 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         else:
             head_price = price
         return chain_pb2.BookResponse(price=head_price, old_price=price)
+
+    def Timeout(self, request, context):
+        timeout = float(request.timeout)
+        if timeout == 0:
+            self.set_timeout(None)
+        else:
+            self.set_timeout(timeout)
+        return chain_pb2.TimeoutResponse()
 
 
 # Reads the node file and returns an array of Node objects
