@@ -94,7 +94,7 @@ class Node:
             with grpc.insecure_channel(self.address) as channel:
                 stub = chain_pb2_grpc.ChainStub(channel)
                 response = stub.GetBookPrice(chain_pb2.BookRequest(process=process, book=book))
-                return response.price
+                return response.price, response.old_price
         except:
             print(f'Failed to get book price from node {self.name}({self.address})')
             return None
@@ -293,9 +293,11 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         process = self.chain_order[random.randint(0, len(self.chain_order) - 1)]
         node = self.get_process_node(process)
 
-        price = node.get_book_price(process, book)
+        price, old_price = node.get_book_price(process, book)
         if price == 'None':
             print('Not yet in the stock')
+        elif price != old_price and old_price is not None:
+            print(f'{price} EUR (old price {old_price} EUR)')
         else:
             print(f'{price} EUR')
 
@@ -387,12 +389,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         # Consult with the head node
         if request.process != self.chain_order[0]:
             head_node = self.get_process_node(self.chain_order[0])
-            head_price = head_node.get_book_price(self.chain_order[0], request.book)
+            head_price, _ = head_node.get_book_price(self.chain_order[0], request.book)
         else:
             head_price = price
-        # TODO: show that the price has actually changed
-        price = head_price
-        return chain_pb2.BookResponse(price=price)
+        return chain_pb2.BookResponse(price=head_price, old_price=price)
 
 
 # Reads the node file and returns an array of Node objects

@@ -44,4 +44,5 @@ message BookRequest {
 }
 message BookResponse {
     string price = 1;
+    string old_price = 2;
 }
