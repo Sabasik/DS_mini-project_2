@@ -5,6 +5,7 @@ import chain_pb2_grpc
 import time
 import random
 import math
+import re
 from concurrent import futures
 from threading import Thread
 
@@ -15,6 +16,10 @@ required.add_argument('-addr', type=str, help='IP address of the created node in
 parser.add_argument('-file', type=str, default='node_list.txt', help='Path to the node list file')
 args = parser.parse_args()
 
+pattern_local_store_ps = re.compile("Local-store-ps (\d+)")
+pattern_write_operation = re.compile('Write-operation <"(.*?)", (\d+(\.\d*)?)>')
+pattern_read_operation = re.compile('Read-operation "(.*?)"')
+pattern_time_out = re.compile("Time-out (\d+(\.\d*)?)")
 
 class Node:
     def __init__(self, address) -> None:
@@ -316,14 +321,14 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             else:
                 print(f'{process}', end=' -> ')
 
-    def write_operation(self, operation):
+    def write_operation(self, book, price):
         '''
         Parses the input and sends it to the head process
         '''
-        operation = operation[1:len(operation) - 1]
-        book, price = operation.split(',')
-        book = book[1:len(book) - 1]
-        price = price.strip()
+        #operation = operation[1:len(operation) - 1]
+        #book, price = operation.split(',')
+        #book = book[1:len(book) - 1]
+        #price = price.strip()
 
         target_node = self.get_process_node(self.chain_order[0])
 
@@ -392,31 +397,50 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
 
     def process_command(self, command: str):
-        if command.startswith('Local-store-ps'):
-            k = int(command.split(' ')[1])
-            self.local_store_ps(k)
-        elif command == 'Create-chain':
+        is_unknown_command = False
+        if command == 'Create-chain':
             self.create_chain()
         elif command == 'List-chain':
             self.list_chain()
-        elif command.startswith('Write-operation'):
-            command = command.replace('Write-operation', '').strip()
-            self.write_operation(command)
+        #elif command.startswith('Write-operation'):
+        #    command = command.replace('Write-operation', '').strip()
+        #    self.write_operation(command)
         elif command == 'List-books':
             self.list_books()
-        elif command.startswith('Read-operation'):
-            book = command.replace('Read-operation', '').strip()
-            book = book[1:len(book) - 1]  # Also removing quotes
-            self.read_operation(book)
-        elif command.startswith('Set-timeout'):
-            timeout = command.split(' ')[1].strip()
-            self.process_timeout(timeout)
+        #elif command.startswith('Read-operation'):
+        #    book = command.replace('Read-operation', '').strip()
+        #    book = book[1:len(book) - 1]  # Also removing quotes
+        #    self.read_operation(book)
+        #elif command.startswith('Set-timeout'):
+        #    timeout = command.split(' ')[1].strip()
+        #    self.process_timeout(timeout)
         elif command == 'Data-status':
             self.data_status()
         elif command == 'exit':
             self.stop_server()
         else:
-            print('Unsupported command')
+            is_unknown_command = True
+
+        if not is_unknown_command:
+            return
+
+        m = pattern_local_store_ps.match(command)
+        if m:
+            self.local_store_ps(int(m.group(1)))
+            return
+        m = pattern_write_operation.match(command)
+        if m:
+            self.write_operation(m.group(1), m.group(2))
+            return
+        m = pattern_read_operation.match(command)
+        if m:
+            self.read_operation(m.group(1))
+            return
+        m = pattern_time_out.match(command)
+        if m:
+            self.process_timeout(m.group(1))
+            return
+        print('Unsupported command')
 
     def local_store_ps(self, k: int):
         '''
