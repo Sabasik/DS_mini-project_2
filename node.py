@@ -355,8 +355,11 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         '''
         process = self.chain_order[random.randint(0, len(self.chain_order) - 1)]
         node = self.get_process_node(process)
-
-        price, old_price = node.get_book_price(process, book)
+        if node:
+            price, old_price = node.get_book_price(process, book)
+        else:
+            price = old_price = 'None'
+        
         if price == 'None':
             print('Not yet in the stock')
         elif price != old_price and old_price != 'None':
@@ -521,7 +524,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
     def GetBookPrice(self, request, context):
         # Get the book from the required process
         target_process = self.get_target_process(request.process)
-        price = target_process.get_book_price(request.book)
+        if target_process:
+            price = target_process.get_book_price(request.book)
+        else:
+            price=None
         if price is None:
             price = 'None'
         # Consult with the head node
