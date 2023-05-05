@@ -21,6 +21,7 @@ pattern_write_operation = re.compile('Write-operation <"(.*?)", (\d+(\.\d*)?)>')
 pattern_read_operation = re.compile('Read-operation "(.*?)"')
 pattern_time_out = re.compile("Time-out (\d+(\.\d*)?)")
 
+
 class Node:
     def __init__(self, address) -> None:
         self.name = None
@@ -73,9 +74,9 @@ class Node:
             print(f'Failed to send chain to node {self.name}({self.address})')
             return None
 
-    def send_book_data(self, target_process, book, price, timeout = None):
+    def send_book_data(self, target_process, book, price, timeout=None):
         if timeout:
-            time.sleep(math.ceil(timeout * 60)) # Convert minutes to seconds
+            time.sleep(math.ceil(timeout * 60))  # Convert minutes to seconds
 
         try:
             with grpc.insecure_channel(self.address) as channel:
@@ -135,7 +136,6 @@ class Node:
         except:
             print(f'Failed to set timeout for node {self.name}({self.address})')
             return None
-
 
     def __repr__(self) -> str:
         return f'Node: {self.name}, address: {self.address}, online: {self.online}'
@@ -325,10 +325,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         '''
         Parses the input and sends it to the head process
         '''
-        #operation = operation[1:len(operation) - 1]
-        #book, price = operation.split(',')
-        #book = book[1:len(book) - 1]
-        #price = price.strip()
+        # operation = operation[1:len(operation) - 1]
+        # book, price = operation.split(',')
+        # book = book[1:len(book) - 1]
+        # price = price.strip()
 
         target_node = self.get_process_node(self.chain_order[0])
 
@@ -359,7 +359,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             price, old_price = node.get_book_price(process, book)
         else:
             price = old_price = 'None'
-        
+
         if price == 'None':
             print('Not yet in the stock')
         elif price != old_price and old_price != 'None':
@@ -398,23 +398,22 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         for i, status in enumerate(statuses):
             print(f'{i}) {status}')
 
-
     def process_command(self, command: str):
         is_unknown_command = False
         if command == 'Create-chain':
             self.create_chain()
         elif command == 'List-chain':
             self.list_chain()
-        #elif command.startswith('Write-operation'):
+        # elif command.startswith('Write-operation'):
         #    command = command.replace('Write-operation', '').strip()
         #    self.write_operation(command)
         elif command == 'List-books':
             self.list_books()
-        #elif command.startswith('Read-operation'):
+        # elif command.startswith('Read-operation'):
         #    book = command.replace('Read-operation', '').strip()
         #    book = book[1:len(book) - 1]  # Also removing quotes
         #    self.read_operation(book)
-        #elif command.startswith('Set-timeout'):
+        # elif command.startswith('Set-timeout'):
         #    timeout = command.split(' ')[1].strip()
         #    self.process_timeout(timeout)
         elif command == 'Data-status':
@@ -493,7 +492,8 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         # Also includes timeout if this is necessary
         if target_process.successor is not None:
             target_node = self.get_process_node(target_process.successor)
-            thread = Thread(target=target_node.send_book_data, args=(target_process.successor, book, price, self.timeout))
+            thread = Thread(target=target_node.send_book_data,
+                            args=(target_process.successor, book, price, self.timeout))
             thread.start()
         else:
             target_process.clean_book(book)
@@ -527,7 +527,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         if target_process:
             price = target_process.get_book_price(request.book)
         else:
-            price=None
+            price = None
         if price is None:
             price = 'None'
         # Consult with the head node
