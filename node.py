@@ -77,6 +77,7 @@ class Node:
     def send_book_data(self, target_process, book, price, timeout=None):
         if timeout:
             time.sleep(math.ceil(timeout * 60))  # Convert minutes to seconds
+        print("Sending to ",target_process)
 
         try:
             with grpc.insecure_channel(self.address) as channel:
