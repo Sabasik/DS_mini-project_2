@@ -294,6 +294,9 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
                 processes.extend(node_processes)
 
         chain_order = []
+        if len(processes) < 2:
+            print("Chain creation canceled. There must be at least 2 local store processes!")
+            return
         while len(processes) > 0:
             chain_order.append(processes.pop(random.randint(0, len(processes) - 1)))
 
