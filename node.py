@@ -397,6 +397,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
         for i, status in enumerate(statuses):
             print(f'{i}) {status}')
+    def remove_head(self):
+        print("command reached: Remove head")
+    def restore_head(self):
+        print("command reached: Restore head")
 
     def process_command(self, command: str):
         is_unknown_command = False
@@ -418,6 +422,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         #    self.process_timeout(timeout)
         elif command == 'Data-status':
             self.data_status()
+        elif command == "Remove-head":
+            self.remove_head()
+        elif command == "Restore-head":
+            self.restore_head()
         elif command == 'exit':
             self.stop_server()
         else:
