@@ -419,9 +419,17 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             print(f'{i}) {status}')
 
     def remove_head(self):
-        if len(self.chain_order) == 0:
-            print('Chain has not been created yet')
+        if len(self.chain_order) < 3:
+            print("Can't remove head. There are less than 3 processes in the chain")
             return
+        
+        self.chain_order.pop(0)
+        self.update_processes()
+        for node in self.nodes:
+            if node.name == self.name:
+                continue
+
+            node.send_chain(self.chain_order)
         print("command reached: Remove head")
 
     def restore_head(self):
