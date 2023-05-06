@@ -225,6 +225,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         self.chain_order = []
         self.processes = {}
         self.timeout = None
+        self.old_head_name = None
 
     def set_server(self, server):
         self.server = server
@@ -315,6 +316,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         # Sending the created chain order to other nodes
         self.chain_order = chain_order
         self.update_processes()
+        self.old_head_name = None
         for node in self.nodes:
             if node.name == self.name:
                 continue
@@ -515,6 +517,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         print('Received chain ordering')
         chain_order = request.processes
         self.chain_order = chain_order
+        self.old_head_name = None
         self.process_order()
         for key in list(self.processes.keys()):
             self.processes[key].reset()
@@ -603,6 +606,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
     def RemoveHead(self, request, context):
         old_head_name = self.chain_order.pop(0)
         new_head_name = self.chain_order[0]
+        self.old_head_name = old_head_name
 
         old_head = self.get_target_process(old_head_name)
         new_head = self.get_target_process(new_head_name)
