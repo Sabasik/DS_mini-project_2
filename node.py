@@ -136,6 +136,16 @@ class Node:
         except:
             print(f'Failed to set timeout for node {self.name}({self.address})')
             return None
+        
+    def remove_head(self):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.RemoveHead(chain_pb2.RemoveHeadRequest())
+                return True
+        except:
+            print(f'Failed to remove head in node {self.name}({self.address})')
+            return None
 
     def __repr__(self) -> str:
         return f'Node: {self.name}, address: {self.address}, online: {self.online}'
@@ -423,14 +433,9 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             print("Can't remove head. There are less than 3 processes in the chain")
             return
         
-        self.chain_order.pop(0)
-        self.update_processes()
-        for node in self.nodes:
-            if node.name == self.name:
-                continue
-
-            node.send_chain(self.chain_order)
         print("command reached: Remove head")
+        for node in self.nodes:
+            node.remove_head()
 
     def restore_head(self):
         if len(self.chain_order) == 0:
@@ -594,6 +599,20 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         target_process = self.get_target_process(request.process)
         books = target_process.get_books_status()
         return chain_pb2.StatusBooksResponse(books=books)
+    
+    def RemoveHead(self, request, context):
+        old_head_name = self.chain_order.pop(0)
+        new_head_name = self.chain_order[0]
+
+        old_head = self.get_target_process(old_head_name)
+        new_head = self.get_target_process(new_head_name)
+
+        old_head.set_head(False)
+        old_head.set_successor(new_head_name)
+        new_head.set_head(True)
+        new_head.set_predecessor(None)
+
+        return chain_pb2.RemoveHeadResponse()
 
 
 # Reads the node file and returns an array of Node objects

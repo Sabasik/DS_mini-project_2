@@ -10,6 +10,7 @@ service Chain {
     rpc GetBookPrice(BookRequest) returns (BookResponse) {}
     rpc Timeout(TimeoutRequest) returns (TimeoutResponse) {}
     rpc StatusBooks(StatusBooksRequest) returns (StatusBooksResponse) {}
+    rpc RemoveHead(RemoveHeadRequest) returns (RemoveHeadResponse) {}
 }
 
 message ProbeRequest {}
@@ -67,3 +68,6 @@ message StatusBooksRequest {
 message StatusBooksResponse {
     repeated string books = 1;
 }
+
+message RemoveHeadRequest {}
+message RemoveHeadResponse {}
