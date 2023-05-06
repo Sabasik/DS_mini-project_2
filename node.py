@@ -77,7 +77,6 @@ class Node:
     def send_book_data(self, target_process, book, price, timeout=None):
         if timeout:
             time.sleep(math.ceil(timeout * 60))  # Convert minutes to seconds
-        print("Sending to ",target_process)
 
         try:
             with grpc.insecure_channel(self.address) as channel:
@@ -234,7 +233,6 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
                 target_node = node
                 break
 
-        print("get_process_node",target_node, self.nodes, process_name)
         return target_node
 
     def process_order(self):
@@ -338,6 +336,8 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         if len(self.chain_order) == 0:
             print('Chain has not been created yet')
             return
+        
+        print("Correct input. Writing process started!")
 
         target_node = self.get_process_node(self.chain_order[0])
 
