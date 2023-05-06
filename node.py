@@ -234,6 +234,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
                 target_node = node
                 break
 
+        print("get_process_node",target_node, self.nodes, process_name)
         return target_node
 
     def process_order(self):
