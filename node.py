@@ -331,17 +331,25 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         # operation = operation[1:len(operation) - 1]
         # book, price = operation.split(',')
         # book = book[1:len(book) - 1]
-        # price = price.strip()
+        # price = price.strip()'
+        
+        if len(self.chain_order) == 0:
+            print('Chain has not been created yet')
+            return
 
         target_node = self.get_process_node(self.chain_order[0])
 
-        thread = Thread(target=target_node.send_book_data, args=(self.chain_order[0], book, price,))
+        thread = Thread(target=target_node.send_book_data, args=(self.chain_order[0], book, price))
         thread.start()
 
     def list_books(self):
         '''
         Asks the list of books from the Tail process
         '''
+        if len(self.chain_order) == 0:
+            print('Chain has not been created yet')
+            return
+        
         tail_process = self.chain_order[len(self.chain_order) - 1]
         tail_node = self.get_process_node(tail_process)
 
@@ -356,6 +364,10 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         '''
         Tries to read a book from a random process
         '''
+        
+        if len(self.chain_order) == 0:
+            print('Chain has not been created yet')
+            return
         process = self.chain_order[random.randint(0, len(self.chain_order) - 1)]
         node = self.get_process_node(process)
         if node:
@@ -389,8 +401,11 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
     def data_status(self):
         '''
-        Asks the head and tail of the chain for data and checks if the values match
+        Asks the head what is the status of the books in it.
         '''
+        if len(self.chain_order) == 0:
+            print('Chain has not been created yet')
+            return
         head_process = self.chain_order[0]
         head_node = self.get_process_node(head_process)
 
@@ -400,9 +415,17 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
         for i, status in enumerate(statuses):
             print(f'{i}) {status}')
+
     def remove_head(self):
+        if len(self.chain_order) == 0:
+            print('Chain has not been created yet')
+            return
         print("command reached: Remove head")
+
     def restore_head(self):
+        if len(self.chain_order) == 0:
+            print('Chain has not been created yet')
+            return
         print("command reached: Restore head")
 
     def process_command(self, command: str):
