@@ -607,10 +607,12 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         old_head = self.get_target_process(old_head_name)
         new_head = self.get_target_process(new_head_name)
 
-        old_head.set_head(False)
-        old_head.set_successor(new_head_name)
-        new_head.set_head(True)
-        new_head.set_predecessor(None)
+        if old_head:
+            old_head.set_head(False)
+            old_head.set_successor(new_head_name)
+        if new_head:
+            new_head.set_head(True)
+            new_head.set_predecessor(None)
 
         return chain_pb2.RemoveHeadResponse()
 
