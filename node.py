@@ -235,7 +235,7 @@ class Process:
     def get_books(self):
         listing = []
         for key in list(self.store.keys()):
-            listing.append(f'{key} = {self.store[key]["price"]}')
+            listing.append(f'{key} = {self.store[key]["price"]} EUR')
 
         return listing
 
@@ -420,7 +420,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             books = []
 
         for i, book in enumerate(books):
-            print(f'{i}) {book}')
+            print(f'{i+1}) {book}')
 
     def read_operation(self, book):
         '''
@@ -695,6 +695,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             )
     
     def RestoreHead(self, request, context):
+        print("Restore head request recieved!")
         current_head_name = self.chain_order[0]
 
         old_head_to_be_restored = self.get_target_process(self.old_head_name)
