@@ -162,7 +162,7 @@ class Node:
             with grpc.insecure_channel(self.address) as channel:
                 stub = chain_pb2_grpc.ChainStub(channel)
                 response = stub.RestoreHeadStart(chain_pb2.RestoreHeadStartRequest())
-                return True
+                return response
         except:
             print(f'Failed to ask if one can start restoring head in node {self.name}({self.address})')
             return None
@@ -677,12 +677,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             raise Exception("Current head process not in this node!")
         list_of_operations = current_head.list_of_operations
         if len(list_of_operations) > 5:
-            return chain_pb2.RestoreHeadStartResponse(
-                can_start = False,
-                books = [],
-                prices = [],
-                dirty_books = []
-                )
+            return chain_pb2.RestoreHeadStartResponse(can_start = False)
         books=[]
         prices=[]
         for entry in list_of_operations:
