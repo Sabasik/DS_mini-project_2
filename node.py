@@ -156,6 +156,26 @@ class Node:
         except:
             print(f'Failed to permanently delete old head in node {self.name}({self.address})')
             return None
+        
+    def restore_head_start(self):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.RestoreHeadStart(chain_pb2.RestoreHeadStartRequest())
+                return True
+        except:
+            print(f'Failed to ask if one can start restoring head in node {self.name}({self.address})')
+            return None
+        
+    def restore_head(self):
+        try:
+            with grpc.insecure_channel(self.address) as channel:
+                stub = chain_pb2_grpc.ChainStub(channel)
+                response = stub.RestoreHead(chain_pb2.RestoreHeadRequest())
+                return True
+        except:
+            print(f'Failed to restore head in node {self.name}({self.address})')
+            return None
 
     def __repr__(self) -> str:
         return f'Node: {self.name}, address: {self.address}, online: {self.online}'
@@ -461,6 +481,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         
         for node in self.nodes:
             node.remove_head()
+
 
     def restore_head(self):
         if len(self.chain_order) == 0:
