@@ -64,6 +64,21 @@ class ChainStub(object):
                 request_serializer=chain__pb2.RemoveHeadRequest.SerializeToString,
                 response_deserializer=chain__pb2.RemoveHeadResponse.FromString,
                 )
+        self.RestoreHeadStart = channel.unary_unary(
+                '/Chain/RestoreHeadStart',
+                request_serializer=chain__pb2.RestoreHeadStartRequest.SerializeToString,
+                response_deserializer=chain__pb2.RestoreHeadStartResponse.FromString,
+                )
+        self.RestoreHead = channel.unary_unary(
+                '/Chain/RestoreHead',
+                request_serializer=chain__pb2.RestoreHeadRequest.SerializeToString,
+                response_deserializer=chain__pb2.RestoreHeadResponse.FromString,
+                )
+        self.PermaDel = channel.unary_unary(
+                '/Chain/PermaDel',
+                request_serializer=chain__pb2.PermaDelRequest.SerializeToString,
+                response_deserializer=chain__pb2.PermaDelResponse.FromString,
+                )
 
 
 class ChainServicer(object):
@@ -129,6 +144,24 @@ class ChainServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def RestoreHeadStart(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RestoreHead(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PermaDel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ChainServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -181,6 +214,21 @@ def add_ChainServicer_to_server(servicer, server):
                     servicer.RemoveHead,
                     request_deserializer=chain__pb2.RemoveHeadRequest.FromString,
                     response_serializer=chain__pb2.RemoveHeadResponse.SerializeToString,
+            ),
+            'RestoreHeadStart': grpc.unary_unary_rpc_method_handler(
+                    servicer.RestoreHeadStart,
+                    request_deserializer=chain__pb2.RestoreHeadStartRequest.FromString,
+                    response_serializer=chain__pb2.RestoreHeadStartResponse.SerializeToString,
+            ),
+            'RestoreHead': grpc.unary_unary_rpc_method_handler(
+                    servicer.RestoreHead,
+                    request_deserializer=chain__pb2.RestoreHeadRequest.FromString,
+                    response_serializer=chain__pb2.RestoreHeadResponse.SerializeToString,
+            ),
+            'PermaDel': grpc.unary_unary_rpc_method_handler(
+                    servicer.PermaDel,
+                    request_deserializer=chain__pb2.PermaDelRequest.FromString,
+                    response_serializer=chain__pb2.PermaDelResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -359,5 +407,56 @@ class Chain(object):
         return grpc.experimental.unary_unary(request, target, '/Chain/RemoveHead',
             chain__pb2.RemoveHeadRequest.SerializeToString,
             chain__pb2.RemoveHeadResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def RestoreHeadStart(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/RestoreHeadStart',
+            chain__pb2.RestoreHeadStartRequest.SerializeToString,
+            chain__pb2.RestoreHeadStartResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def RestoreHead(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/RestoreHead',
+            chain__pb2.RestoreHeadRequest.SerializeToString,
+            chain__pb2.RestoreHeadResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def PermaDel(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Chain/PermaDel',
+            chain__pb2.PermaDelRequest.SerializeToString,
+            chain__pb2.PermaDelResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

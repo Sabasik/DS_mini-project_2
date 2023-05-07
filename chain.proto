@@ -11,6 +11,9 @@ service Chain {
     rpc Timeout(TimeoutRequest) returns (TimeoutResponse) {}
     rpc StatusBooks(StatusBooksRequest) returns (StatusBooksResponse) {}
     rpc RemoveHead(RemoveHeadRequest) returns (RemoveHeadResponse) {}
+    rpc RestoreHeadStart(RestoreHeadStartRequest) returns (RestoreHeadStartResponse) {}
+    rpc RestoreHead(RestoreHeadRequest) returns (RestoreHeadResponse) {}
+    rpc PermaDel(PermaDelRequest) returns (PermaDelResponse) {}
 }
 
 message ProbeRequest {}
@@ -71,3 +74,21 @@ message StatusBooksResponse {
 
 message RemoveHeadRequest {}
 message RemoveHeadResponse {}
+
+message RestoreHeadStartRequest{}
+message RestoreHeadStartResponse{
+    bool can_start = 1;
+    repeated string books = 2;
+    repeated string prices = 3;
+    repeated string dirty_books = 4;
+}
+
+message RestoreHeadRequest {
+    repeated string books = 1;
+    repeated string prices = 2;
+    repeated string dirty_books = 3;
+}
+message RestoreHeadResponse {}
+
+message PermaDelRequest{}
+message PermaDelResponse{}
