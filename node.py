@@ -677,7 +677,12 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             raise Exception("Current head process not in this node!")
         list_of_operations = current_head.list_of_operations
         if len(list_of_operations) > 5:
-            return chain_pb2.RestoreHeadStartResponse(can_start = False)
+            return chain_pb2.RestoreHeadStartResponse(
+                can_start = False,
+                books = [],
+                prices = [],
+                dirty_books = []
+                )
         books=[]
         prices=[]
         for entry in list_of_operations:
