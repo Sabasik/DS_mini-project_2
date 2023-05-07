@@ -167,11 +167,15 @@ class Node:
             print(f'Failed to ask if one can start restoring head in node {self.name}({self.address})')
             return None
         
-    def restore_head(self):
+    def restore_head(self, start_response):
         try:
             with grpc.insecure_channel(self.address) as channel:
                 stub = chain_pb2_grpc.ChainStub(channel)
-                response = stub.RestoreHead(chain_pb2.RestoreHeadRequest())
+                response = stub.RestoreHead(chain_pb2.RestoreHeadRequest(
+                    books = start_response.books,
+                    prices = start_response.prices,
+                    dirty_books = start_response.dirty_books,
+                    ))
                 return True
         except:
             print(f'Failed to restore head in node {self.name}({self.address})')
