@@ -699,7 +699,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
 
         old_head_to_be_restored = self.get_target_process(self.old_head_name)
         current_head = self.get_target_process(current_head_name)
-        self.chain_order.insert(0, old_head_to_be_restored)
+        self.chain_order.insert(0, self.old_head_name)
         
         if current_head:
             current_head.set_head(False)
