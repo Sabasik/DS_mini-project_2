@@ -476,7 +476,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             statuses = []
 
         for i, status in enumerate(statuses):
-            print(f'{i}) {status}')
+            print(f'{i+1}) {status}')
 
     def remove_head(self):
         if len(self.chain_order) < 3:
