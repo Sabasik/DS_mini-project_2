@@ -136,7 +136,7 @@ class Node:
         except:
             print(f'Failed to set timeout for node {self.name}({self.address})')
             return None
-        
+
     def remove_head(self):
         try:
             with grpc.insecure_channel(self.address) as channel:
@@ -146,7 +146,7 @@ class Node:
         except:
             print(f'Failed to remove head in node {self.name}({self.address})')
             return None
-        
+
     def perma_del_old_node_name(self):
         try:
             with grpc.insecure_channel(self.address) as channel:
@@ -156,7 +156,7 @@ class Node:
         except:
             print(f'Failed to permanently delete old head in node {self.name}({self.address})')
             return None
-        
+
     def restore_head_start(self):
         try:
             with grpc.insecure_channel(self.address) as channel:
@@ -166,16 +166,16 @@ class Node:
         except:
             print(f'Failed to ask if one can start restoring head in node {self.name}({self.address})')
             return None
-        
+
     def restore_head(self, start_response):
         try:
             with grpc.insecure_channel(self.address) as channel:
                 stub = chain_pb2_grpc.ChainStub(channel)
                 response = stub.RestoreHead(chain_pb2.RestoreHeadRequest(
-                    books = start_response.books,
-                    prices = start_response.prices,
-                    dirty_books = start_response.dirty_books,
-                    ))
+                    books=start_response.books,
+                    prices=start_response.prices,
+                    dirty_books=start_response.dirty_books,
+                ))
                 return True
         except:
             print(f'Failed to restore head in node {self.name}({self.address})')
@@ -206,7 +206,7 @@ class Process:
 
     def set_tail(self, tail):
         self.tail = tail
-    
+
     def set_list_of_operations(self, list_of_operations):
         self.list_of_operations = list_of_operations
 
@@ -226,7 +226,7 @@ class Process:
             self.store[key]['dirty'] = key in dirty_book_list
 
     def get_dirty_books(self):
-        dirty_books =[]
+        dirty_books = []
         for key in list(self.store.keys()):
             if self.store[key]['dirty']:
                 dirty_books.append(key)
@@ -392,11 +392,11 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         '''
         Parses the input and sends it to the head process
         '''
-        
+
         if len(self.chain_order) == 0:
             print('Chain has not been created yet')
             return
-        
+
         print("Correct input. Writing process started!")
 
         target_node = self.get_process_node(self.chain_order[0])
@@ -411,7 +411,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         if len(self.chain_order) == 0:
             print('Chain has not been created yet')
             return
-        
+
         tail_process = self.chain_order[len(self.chain_order) - 1]
         tail_node = self.get_process_node(tail_process)
 
@@ -420,13 +420,13 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             books = []
 
         for i, book in enumerate(books):
-            print(f'{i+1}) {book}')
+            print(f'{i + 1}) {book}')
 
     def read_operation(self, book):
         '''
         Tries to read a book from a random process
         '''
-        
+
         if len(self.chain_order) == 0:
             print('Chain has not been created yet')
             return
@@ -476,16 +476,15 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             statuses = []
 
         for i, status in enumerate(statuses):
-            print(f'{i+1}) {status}')
+            print(f'{i + 1}) {status}')
 
     def remove_head(self):
         if len(self.chain_order) < 3:
             print("Can't remove head. There are less than 3 processes in the chain")
             return
-        
+
         for node in self.nodes:
             node.remove_head()
-
 
     def restore_head(self):
         if len(self.chain_order) == 0:
@@ -655,7 +654,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         target_process = self.get_target_process(request.process)
         books = target_process.get_books_status()
         return chain_pb2.StatusBooksResponse(books=books)
-    
+
     def RemoveHead(self, request, context):
         print("Remove head request recieved!")
         old_head_name = self.chain_order.pop(0)
@@ -673,7 +672,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             new_head.set_predecessor(None)
 
         return chain_pb2.RemoveHeadResponse()
-    
+
     def RestoreHeadStart(self, request, context):
         current_head_name = self.chain_order[0]
         current_head = self.get_target_process(current_head_name)
@@ -681,19 +680,19 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
             raise Exception("Current head process not in this node!")
         list_of_operations = current_head.list_of_operations
         if len(list_of_operations) > 5:
-            return chain_pb2.RestoreHeadStartResponse(can_start = False)
-        books=[]
-        prices=[]
+            return chain_pb2.RestoreHeadStartResponse(can_start=False)
+        books = []
+        prices = []
         for entry in list_of_operations:
             books.append(entry[0])
             prices.append(entry[1])
         return chain_pb2.RestoreHeadStartResponse(
-            can_start = True,
-            books = books,
-            prices = prices,
-            dirty_books = current_head.get_dirty_books()
-            )
-    
+            can_start=True,
+            books=books,
+            prices=prices,
+            dirty_books=current_head.get_dirty_books()
+        )
+
     def RestoreHead(self, request, context):
         print("Restore head request recieved!")
         current_head_name = self.chain_order[0]
@@ -701,7 +700,7 @@ class ChainServicer(chain_pb2_grpc.ChainServicer):
         old_head_to_be_restored = self.get_target_process(self.old_head_name)
         current_head = self.get_target_process(current_head_name)
         self.chain_order.insert(0, self.old_head_name)
-        
+
         if current_head:
             current_head.set_head(False)
             current_head.set_predecessor(self.old_head_name)
